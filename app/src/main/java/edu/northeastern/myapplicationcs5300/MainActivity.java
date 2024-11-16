@@ -1,9 +1,11 @@
 package edu.northeastern.myapplicationcs5300;
 
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -42,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
         // 设置 Toolbar
         setSupportActionBar(binding.appBarMain.toolbar);
+
+        // 加载并应用保存的颜色
+        int savedColor = loadColorPreference();
+        applyInterfaceColor(savedColor);
 
         // 初始化 DrawerLayout 和 NavigationView
         DrawerLayout drawer = binding.drawerLayout;
@@ -146,4 +152,65 @@ public class MainActivity extends AppCompatActivity {
             tflite.close(); // 释放模型资源
         }
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 获取点击的菜单项 ID
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings) {
+            // 显示颜色选择对话框
+            showColorPickerDialog();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showColorPickerDialog() {
+        // 定义颜色选项 (可以自定义添加更多颜色)
+        final int[] colors = {
+                0xFFE57373, // Red
+                0xFF81C784, // Green
+                0xFF64B5F6, // Blue
+                0xFFFFD54F, // Yellow
+                0xFFA1887F, // Brown
+                0xFF90A4AE  // Gray
+        };
+        final String[] colorNames = {"Red", "Green", "Blue", "Yellow", "Brown", "Gray"};
+
+        // 创建对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose a color for the interface");
+        builder.setItems(colorNames, (dialog, which) -> {
+            // 应用选中的颜色
+            int selectedColor = colors[which];
+            applyInterfaceColor(selectedColor);
+
+            // 保存用户选择的颜色
+            saveColorPreference(selectedColor);
+        });
+
+        // 显示对话框
+        builder.create().show();
+    }
+
+    private void applyInterfaceColor(int color) {
+        // 修改 Toolbar 的背景颜色
+        binding.appBarMain.toolbar.setBackgroundColor(color);
+    }
+
+    private void saveColorPreference(int color) {
+        getSharedPreferences("app_preferences", MODE_PRIVATE)
+                .edit()
+                .putInt("interface_color", color)
+                .apply();
+    }
+
+    private int loadColorPreference() {
+        // 默认颜色 (可以是白色或其他颜色)
+        return getSharedPreferences("app_preferences", MODE_PRIVATE)
+                .getInt("interface_color", 0xFF64B5F6);
+    }
+
 }
