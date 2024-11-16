@@ -1,17 +1,25 @@
 package edu.northeastern.myapplicationcs5300;
 
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -29,6 +37,9 @@ import edu.northeastern.myapplicationcs5300.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
+    private static final String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
     private Interpreter tflite; // TensorFlow Lite 模型解释器
@@ -61,23 +72,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         // 设置 FloatingActionButton 点击事件
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    // 示例图像用于测试
-                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bottle);
-                    String result = predictImage(bitmap); // 调用预测方法
-                    Snackbar.make(view, "Classification: " + result, Snackbar.LENGTH_LONG)
-                            .setAnchorView(binding.appBarMain.fab)
-                            .show();
-                } catch (Exception e) {
-                    Snackbar.make(view, "Error during prediction: " + e.getMessage(), Snackbar.LENGTH_LONG)
-                            .setAnchorView(binding.appBarMain.fab)
-                            .show();
-                }
-            }
-        });
+        binding.appBarMain.fab.setOnClickListener(view -> showImageSourceDialog());
 
         // 加载 TensorFlow Lite 模型
         try {
@@ -86,6 +81,120 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "onRequestPermissionsResult: Camera permission granted, relaunching camera intent.");
+                // 启动相机
+                dispatchTakePictureIntent();
+            } else {
+                Log.w(TAG, "onRequestPermissionsResult: Camera permission denied.");
+                Toast.makeText(this, "Permission denied to use camera", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if (requestCode == REQUEST_IMAGE_PICK) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "onRequestPermissionsResult: Storage permission granted, relaunching gallery intent.");
+                // 打开图库
+                pickImageFromGallery();
+            } else {
+                Log.w(TAG, "onRequestPermissionsResult: Storage permission denied.");
+                Toast.makeText(this, "Permission denied to use gallery", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void showImageSourceDialog() {
+        Log.d(TAG, "showImageSourceDialog: Displaying image source selection dialog.");
+        String[] options = {"Take a Photo", "Choose from Gallery"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Image Source");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                Log.d(TAG, "showImageSourceDialog: User selected 'Take a Photo'.");
+                dispatchTakePictureIntent();
+            } else if (which == 1) {
+                Log.d(TAG, "showImageSourceDialog: User selected 'Choose from Gallery'.");
+                pickImageFromGallery();
+            }
+        });
+        builder.show();
+    }
+
+    private void dispatchTakePictureIntent() {
+        Log.d(TAG, "dispatchTakePictureIntent: Checking camera permission.");
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "dispatchTakePictureIntent: Camera permission not granted, requesting permission.");
+            // 请求相机权限
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
+        } else {
+            Log.d(TAG, "dispatchTakePictureIntent: Camera permission granted, launching camera.");
+            // 权限已授予，启动相机
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (true) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                Log.e(TAG, "dispatchTakePictureIntent: No camera application available to handle intent.");
+                Snackbar.make(binding.getRoot(), "No camera application available", Snackbar.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void pickImageFromGallery() {
+        Log.d(TAG, "pickImageFromGallery: Checking storage permission.");
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "pickImageFromGallery: Storage permission not granted, requesting permission.");
+            // 请求读取存储权限
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_IMAGE_PICK);
+        } else {
+            Log.d(TAG, "pickImageFromGallery: Storage permission granted, launching gallery.");
+            // 权限已授予，启动图库
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_IMAGE_PICK);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            Log.d(TAG, "onActivityResult: Result OK.");
+            Bitmap bitmap = null;
+            try {
+                if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                    Log.d(TAG, "onActivityResult: Handling camera image.");
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                } else if (requestCode == REQUEST_IMAGE_PICK) {
+                    Log.d(TAG, "onActivityResult: Handling gallery image.");
+                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+                }
+
+                if (bitmap != null) {
+                    Log.d(TAG, "onActivityResult: Image successfully loaded, running prediction.");
+                    String result = predictImage(bitmap);
+                    Snackbar.make(binding.getRoot(), "Classification: " + result, Snackbar.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, "onActivityResult: Bitmap is null.");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "onActivityResult: Error loading image.", e);
+                Snackbar.make(binding.getRoot(), "Error loading image: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+            }
+        } else {
+            Log.w(TAG, "onActivityResult: Result not OK. RequestCode: " + requestCode + ", ResultCode: " + resultCode);
+        }
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
