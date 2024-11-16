@@ -32,6 +32,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.northeastern.myapplicationcs5300.databinding.ActivityMainBinding;
 
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private Interpreter tflite; // TensorFlow Lite 模型解释器
     private String[] labels = {"cardboard", "glass", "metal", "paper", "plastic", "trash"}; // 垃圾分类标签
+    private final List<ClassificationRecord> classificationHistory = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,12 +200,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // 添加菜单
         getMenuInflater().inflate(R.menu.main, menu);
+        menu.add(0, 100, 0, "View History"); // 添加一个菜单项
         return true;
     }
 
@@ -270,6 +271,11 @@ public class MainActivity extends AppCompatActivity {
         // 获取点击的菜单项 ID
         int id = item.getItemId();
 
+        if (id == 100) {
+            displayHistory(); // 显示历史记录
+            return true;
+        }
+
         if (id == R.id.action_settings) {
             // 显示颜色选择对话框
             showColorPickerDialog();
@@ -326,9 +332,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showResultDialog(String userChoice, String modelPrediction) {
-        String message;
+        boolean isCorrect = userChoice.equals(modelPrediction); // 判断是否正确
 
-        if (userChoice.equals(modelPrediction)) {
+        // 存储记录
+        classificationHistory.add(new ClassificationRecord(modelPrediction, userChoice, isCorrect));
+
+        String message;
+        if (isCorrect) {
             message = "Great minds think alike! You and the model both chose \"" + modelPrediction + "\".";
         } else {
             message = "Hmm, interesting! You chose \"" + userChoice + "\", but the model thinks it's \"" + modelPrediction + "\".";
@@ -337,6 +347,20 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Classification Result")
                 .setMessage(message)
+                .setPositiveButton("OK", null)
+                .create()
+                .show();
+    }
+
+    private void displayHistory() {
+        StringBuilder historyText = new StringBuilder();
+        for (ClassificationRecord record : classificationHistory) {
+            historyText.append(record.toString()).append("\n");
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Classification History")
+                .setMessage(historyText.toString())
                 .setPositiveButton("OK", null)
                 .create()
                 .show();
