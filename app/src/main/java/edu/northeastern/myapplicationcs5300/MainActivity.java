@@ -180,8 +180,11 @@ public class MainActivity extends AppCompatActivity {
 
                 if (bitmap != null) {
                     Log.d(TAG, "onActivityResult: Image successfully loaded, running prediction.");
-                    String result = predictImage(bitmap);
-                    Snackbar.make(binding.getRoot(), "Classification: " + result, Snackbar.LENGTH_LONG).show();
+                    String modelPrediction = predictImage(bitmap); // 模型分类结果
+
+                    // 弹出用户选择分类的对话框
+                    showUserPredictionDialog(bitmap, modelPrediction);
+
                 } else {
                     Log.e(TAG, "onActivityResult: Bitmap is null.");
                 }
@@ -320,6 +323,40 @@ public class MainActivity extends AppCompatActivity {
         // 默认颜色 (可以是白色或其他颜色)
         return getSharedPreferences("app_preferences", MODE_PRIVATE)
                 .getInt("interface_color", 0xFF64B5F6);
+    }
+
+    private void showResultDialog(String userChoice, String modelPrediction) {
+        String message;
+
+        if (userChoice.equals(modelPrediction)) {
+            message = "Great minds think alike! You and the model both chose \"" + modelPrediction + "\".";
+        } else {
+            message = "Hmm, interesting! You chose \"" + userChoice + "\", but the model thinks it's \"" + modelPrediction + "\".";
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Classification Result")
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .create()
+                .show();
+    }
+
+    /**
+     * 显示用户选择分类的弹窗
+     */
+    private void showUserPredictionDialog(Bitmap bitmap, String modelPrediction) {
+        String[] categories = {"cardboard", "glass", "metal", "paper", "plastic", "trash"};
+
+        new AlertDialog.Builder(this)
+                .setTitle("In which category do you think the items in this picture are more likely to be classified?")
+                .setItems(categories, (dialog, which) -> {
+                    String userChoice = categories[which];
+                    showResultDialog(userChoice, modelPrediction); // 展示分类结果
+                })
+                .setCancelable(false)
+                .create()
+                .show();
     }
 
 }
