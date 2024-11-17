@@ -4,19 +4,75 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".ui.home.HomeFragment"
+    android:background="?android:attr/windowBackground"
+    app:layout_constraintVertical_chainStyle="packed">
 
+    <!-- APP 标题 -->
     <TextView
-        android:id="@+id/text_home"
-        android:layout_width="match_parent"
+        android:id="@+id/text_home_title"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginHorizontal="16dp"
+        android:text="Welcome to the Waste Classification App!"
         android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:textColor="#FF6200EE"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 主内容文本 -->
+    <TextView
+        android:id="@+id/text_home_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:padding="6dp"
+        android:background="@drawable/rounded_background"
+        android:text="Our app helps you classify waste into six categories. Tap the camera button at the bottom right to get started! Whether you choose an image from the gallery or take a new one, we’ll help you identify the best match. Don’t forget: we’ll test if your guess matches the model’s!"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="#FF000000"
+        app:layout_constraintTop_toBottomOf="@id/text_home_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 设置说明 -->
+    <TextView
+        android:id="@+id/text_home_settings"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:padding="6dp"
+        android:background="@drawable/rounded_background"
+        android:text="In the top right corner, you can access 'Settings' to view your usage history, including overall consistency statistics between your guesses and the model predictions."
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="#FF000000"
+        app:layout_constraintTop_toBottomOf="@id/text_home_description"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 侧边栏说明 -->
+    <TextView
+        android:id="@+id/text_home_sidebar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:padding="6dp"
+        android:background="@drawable/rounded_background"
+        android:text="Use the sidebar in the top left to navigate between 'Home,' 'Statistics,' and 'About.' The 'Statistics' page provides detailed visualizations of your history from different perspectives."
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="#FF000000"
+        app:layout_constraintTop_toBottomOf="@id/text_home_settings"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

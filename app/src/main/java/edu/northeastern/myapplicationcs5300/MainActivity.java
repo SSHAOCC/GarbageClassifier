@@ -349,9 +349,9 @@ public class MainActivity extends AppCompatActivity {
 
         String message;
         if (isCorrect) {
-            message = "Great minds think alike! You and the model both chose \"" + modelPrediction + "\".";
+            message = "Great minds think alike! You and the model both chose:\n \"" + modelPrediction + "\".";
         } else {
-            message = "Hmm, interesting! You chose \"" + userChoice + "\", but the model thinks it's \"" + modelPrediction + "\".";
+            message = "Hmm, interesting! You chose \"" + userChoice + "\", but the model thinks it's:\n \"" + modelPrediction + "\".";
         }
 
         new AlertDialog.Builder(this)
