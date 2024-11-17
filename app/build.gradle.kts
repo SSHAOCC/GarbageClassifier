@@ -43,4 +43,5 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("org.tensorflow:tensorflow-lite:2.9.0") // 添加 TensorFlow Lite 依赖
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")  //添加图标依赖
 }

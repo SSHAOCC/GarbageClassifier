@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -46,11 +47,15 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private Interpreter tflite; // TensorFlow Lite 模型解释器
     private String[] labels = {"cardboard", "glass", "metal", "paper", "plastic", "trash"}; // 垃圾分类标签
-    private final List<ClassificationRecord> classificationHistory = new ArrayList<>();
+    public static final List<ClassificationRecord> classificationHistory = new ArrayList<>();
+    private SharedViewModel sharedViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 初始化 SharedViewModel
+        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
         // 使用 ViewBinding 绑定布局
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -335,7 +340,12 @@ public class MainActivity extends AppCompatActivity {
         boolean isCorrect = userChoice.equals(modelPrediction); // 判断是否正确
 
         // 存储记录
-        classificationHistory.add(new ClassificationRecord(modelPrediction, userChoice, isCorrect));
+        ClassificationRecord record = new ClassificationRecord(modelPrediction, userChoice, isCorrect);
+        classificationHistory.add(record);
+
+        // 更新到 SharedViewModel 中
+        SharedViewModel sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
+        sharedViewModel.addClassificationRecord(record);
 
         String message;
         if (isCorrect) {
@@ -357,6 +367,9 @@ public class MainActivity extends AppCompatActivity {
         for (ClassificationRecord record : classificationHistory) {
             historyText.append(record.toString()).append("\n");
         }
+
+        double accuracy = calculateAccuracy();
+        historyText.append("\nOverall Accuracy: ").append(String.format("%.2f%%", accuracy));
 
         new AlertDialog.Builder(this)
                 .setTitle("Classification History")
@@ -381,6 +394,16 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .create()
                 .show();
+    }
+
+    private double calculateAccuracy() {
+        int correctCount = 0;
+        for (ClassificationRecord record : classificationHistory) {
+            if (record.isCorrect()) {
+                correctCount++;
+            }
+        }
+        return classificationHistory.isEmpty() ? 0 : (correctCount * 100.0 / classificationHistory.size());
     }
 
 }
