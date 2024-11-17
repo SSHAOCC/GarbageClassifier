@@ -8,30 +8,26 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
-import edu.northeastern.myapplicationcs5300.databinding.FragmentSlideshowBinding;
+import edu.northeastern.myapplicationcs5300.R;
 
 public class SlideshowFragment extends Fragment {
 
-    private FragmentSlideshowBinding binding;
-
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        SlideshowViewModel slideshowViewModel =
-                new ViewModelProvider(this).get(SlideshowViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_slideshow, container, false);
 
-        binding = FragmentSlideshowBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        // 设置标题和详细信息
+        TextView titleTextView = root.findViewById(R.id.text_about_title);
+        TextView detailsTextView = root.findViewById(R.id.text_about_details);
 
-        final TextView textView = binding.textSlideshow;
-        slideshowViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        titleTextView.setText("About");
+        detailsTextView.setText("Developers: Haochen Su, Jiexian Li, Yue Zhang\n" +
+                "Organization: Northeastern University\n" +
+                "Purpose: This app is designed for Course CS5330 (2024 Fall) Final Project: waste classification.\n" +
+                "Copyright: © 2024 Northeastern University.");
+
         return root;
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }
