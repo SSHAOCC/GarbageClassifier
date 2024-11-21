@@ -224,10 +224,10 @@ public class MainActivity extends AppCompatActivity {
      * 加载 TensorFlow Lite 模型文件
      */
     private MappedByteBuffer loadModelFile() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(getAssets().openFd("waste_classification_model.tflite").getFileDescriptor());
+        FileInputStream fileInputStream = new FileInputStream(getAssets().openFd("waste_classification_model(1121).tflite").getFileDescriptor());
         FileChannel fileChannel = fileInputStream.getChannel();
-        long startOffset = getAssets().openFd("waste_classification_model.tflite").getStartOffset();
-        long declaredLength = getAssets().openFd("waste_classification_model.tflite").getDeclaredLength();
+        long startOffset = getAssets().openFd("waste_classification_model(1121).tflite").getStartOffset();
+        long declaredLength = getAssets().openFd("waste_classification_model(1121).tflite").getDeclaredLength();
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
 

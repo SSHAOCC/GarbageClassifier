@@ -18,6 +18,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,24 +86,55 @@ public class GalleryFragment extends Fragment {
 
     private void showPieChart(PieChart pieChart, Map<String, Integer> data, String description) {
         List<PieEntry> entries = new ArrayList<>();
+        int total = data.values().stream().mapToInt(Integer::intValue).sum(); // 总数，用于计算百分比
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
-            entries.add(new PieEntry(entry.getValue(), entry.getKey()));
+            float percentage = (entry.getValue() * 100f) / total; // 计算百分比
+            entries.add(new PieEntry(percentage, entry.getKey()));
         }
         PieDataSet dataSet = new PieDataSet(entries, description);
+        dataSet.setSliceSpace(2f); // 设置切片间距
+        dataSet.setValueTextSize(12f); // 设置文本大小
         PieData pieData = new PieData(dataSet);
         pieChart.setData(pieData);
+        pieChart.setUsePercentValues(true); // 显示百分比
+        pieChart.getDescription().setEnabled(false); // 隐藏默认描述
+        pieChart.setCenterText(description); // 设置中心文本
+        pieChart.setEntryLabelTextSize(12f); // 设置标签文本大小
         pieChart.invalidate(); // 刷新图表
     }
 
+
     private void showBarChart(BarChart barChart, Map<String, Integer> data, String description) {
         List<BarEntry> entries = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
         int index = 0;
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
-            entries.add(new BarEntry(index++, entry.getValue()));
+            entries.add(new BarEntry(index++, entry.getValue())); // Add entry with index
+            labels.add(entry.getKey()); // Save label for this index
         }
+
         BarDataSet dataSet = new BarDataSet(entries, description);
+        dataSet.setValueTextSize(12f); // Set text size for values
         BarData barData = new BarData(dataSet);
         barChart.setData(barData);
-        barChart.invalidate(); // 刷新图表
+
+        // Set X-axis labels
+        barChart.getXAxis().setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                int index = Math.round(value); // Convert float to nearest integer
+                if (index >= 0 && index < labels.size()) {
+                    return labels.get(index); // Return the label at the index
+                }
+                return ""; // Fallback for out-of-bounds
+            }
+        });
+        barChart.getXAxis().setGranularity(1f); // Ensure 1 interval per label
+        barChart.getXAxis().setGranularityEnabled(true);
+
+        barChart.getDescription().setEnabled(false); // Hide default description
+        barChart.invalidate(); // Refresh the chart
     }
+
+
 }
